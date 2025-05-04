@@ -1,0 +1,46 @@
+Мотивация
+
+Операторы жалуются на медленную загрузку страниц, клиенты не довольны скоростью обработки заказов и вычислением их стоимости!
+Причины такого положения:
+- Повторяющиеся тяжелые запросы к бд на чтение (например, список заказов)
+- Высокая нагрузка на сервер при массовом обращении к одним и тем же данным, увеличение времени ответа
+- Снижение скорости работы интерфейса
+
+
+Кешировать можно:
+- Сипок заказов
+- Статусы заказов
+- Информация о клиентах
+- Статистику и справочники
+
+
+-----------------
+
+Предлагаемое решение
+
+
+Наиболее предпочтительным выбрано серверное кеширование
+Так как данные могут изменяться, необходима гарантия консистентности, чего нельзя получить при клиентском кешировании
+Однако кеширование статических элементов для увеличение загрузки фронтенд части приложения - стоит использовать
+
+Паттерн: Cache-Aside
+- Больше операций чтения, чем записи
+- Прост в реализации
+
+Write-Through - избыточен, записи происходят нечасто, в отличии от чтения
+Refresh-Ahead - добавляет сложности и требует работы без ошибок, иначем может привести к неконсистентности
+
+
+Чтение данных:
+https://sequencediagram.org/index.html?presentationMode=readOnly#initialData=C4S2BsFMAJHIQQhEEKwgheEEBwgjqEEQQ-CCs4LhBAGEGkHYQQokwPhBAmEAChbA8EG0UAEQQ+SlgWgD4BZAKIBlAFzQGgRhA2EyvCKlC2FpUyFaAQwDGoAG7rgMQUNpHeAJUgATEAGcxgfBBKgbhBAwiCBxEBTpSyQh7SB5EGhUEmh8QFkQQAkQNS1dfRgLaxtaBNteIzFAAhBEEhcnQBkQeHZaS0gYkD0DaBSk014mVnZOMUAkEFZkF3g86BZs3IL2IJD8RCiAGmhETCdUaEpkaB9AThBAFhAUWgBiErKK0oAzAwAnaCMNre1yuOPhDYA7AHtKu51II-TkRHgTYV4ABTubYAAcwOkBsAEdwGJAOggimUmAWxGwzncngwy0IyGQgGkQQCiIBpzjtoH8AcDQRDaMSgSDweA0sIxAx4NQPlhoOjMVjADwgqGKpQJl0ppJpXyE5istjEgEIQSg4thoTrQaihEaIEV1ZhsDgsFptDpdWTMz5nWKVE5AA
+
+Изменение статуса заказа:
+https://sequencediagram.org/index.html?presentationMode=readOnly#initialData=C4S2BsFMAJAwQR2EEDwghWEELwgbAcIM6hBEEEIggDCB6DCIDgdPAYFwgBlAUHYHggg-CDKACIEYHwgbAtAHwBZAKIBlAFzRGgRhAOUznhoUCzNpzJ0AhgGNQANw3AYwkXWP8ACgHsAzsADmAJ0jWAjuAnTUnQEwggbhBM2PhEpASaOiD6htBWto7Obqai-ABKkAAmINYeUl5+AQD0xIAsIAT+qFhKzBg4GNDe0FTIgBIgyIkiFjb2Tq7u0ID4IJxFeN7sgGwgRQF0aZDaegYwMV3x4G38LOxcbBKASCDsqMR4gDIg0PIjeFMz4ZFGonRAA
+
+
+Инвалидация:
+
+Предлагается использование нескольких стратегий:
+- Временная инвалидация - по умолчанию (позволяет автоматически инвалидировать кеш, может допустить устаревшие данные)
+- Программная инвалидация - при обновлении статуса заказа или ручном изменени оператором (гибкость, однако появляется риск забыть обновить)
+- По ключу - точечные изменения (н-р: заказ был удален)
